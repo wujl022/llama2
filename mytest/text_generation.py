@@ -258,7 +258,8 @@ def clear_torch_cache():
             torch.cuda.empty_cache()
 
 
-def start_chat(text, state, stopping_strings, for_ui):
+def start_chat(task, state, stopping_strings, for_ui):
+    text = task.user_input
     history = state['history']
     output = copy.deepcopy(history)
     output = apply_extensions('history', output)
@@ -273,7 +274,7 @@ def start_chat(text, state, stopping_strings, for_ui):
     output['visible'].append([visible_text, ''])
 
     # Generate the prompt
-    prompt = shared.prompt + text + '\nAI: '
+    prompt = shared.prompt + text + f'\nAI: {task.pre_output}'
     for j, reply in enumerate(generate_reply(prompt, state, stopping_strings, True, for_ui)):
 
         # Extract the reply
@@ -283,7 +284,7 @@ def start_chat(text, state, stopping_strings, for_ui):
 
         visible_reply = html.escape(visible_reply)
 
-        if shared.stop_everything:
+        if task.state.stop_everything:
             output['visible'][-1][1] = apply_extensions('output', output['visible'][-1][1], state, is_chat=True)
             yield output
             return
@@ -296,8 +297,8 @@ def start_chat(text, state, stopping_strings, for_ui):
 
     output['visible'][-1][1] = apply_extensions('output', output['visible'][-1][1], state, is_chat=True)
     # 更新state
-    json_state = json.loads(state)
-    json_state['history'] = output
-    shared.state = json.dumps(json_state)
+    # print('state', state)
+    # json_state = json.loads(state)
+    # json_state['history'] = output
+    # shared.state = json.dumps(json_state)
     return 0
-
